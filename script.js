@@ -87,8 +87,6 @@ const displayMovements = movements => {
   });
 };
 
-displayMovements(account1.movements);
-
 /* --------------------------- COMPUTING USERNAME --------------------------- 
 create a userName prop for each account in the accounts array by taking the 1st letter of each owner name
 */
@@ -115,30 +113,66 @@ const showBalance = acc => {
   labelBalance.textContent = `${bal} €`;
 };
 
-showBalance(account1);
-
 /* ---------------------------- CALCULATE SUMMARY (in/out/interest) --------------------------- */
 //for chainging dont over use it ; avoid mutating array methods , for heavy arrays chaining slows down
-const calcDisplaySummary = movements => {
-  const incomes = movements
+//each acc has diff interest rate
+const calcDisplaySummary = acc => {
+  const moves = [...acc.movements];
+  const incomes = moves
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
   labelSumIn.textContent = `${incomes} €`;
 
-  const debit = movements
-    .filter(mov => mov < 0)
-    .reduce((acc, mov) => acc + mov, 0);
+  const debit = moves.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0);
   labelSumOut.textContent = `${Math.abs(debit)} €`;
 
-  const interest = movements
+  const interest = moves
     .filter(mov => mov > 0)
-    .map(depo => (depo * 1.2) / 100)
+    .map(depo => (depo * acc.interestRate) / 100)
     .filter(int => int >= 1)
     .reduce((acc, int) => acc + int, 0);
   labelSumInterest.textContent = `${interest} €`;
 };
 
-calcDisplaySummary(account1.movements);
+/* ------------------------------ Event Handler ----------------------------- */
+let currAcc;
+btnLogin.addEventListener('click', function (e) {
+  //prevent the form from submitting
+  e.preventDefault();
+  currAcc = accounts.find(acc => acc.userName === inputLoginUsername.value);
+  console.log(currAcc);
+  //optional chaining - if the obj exists then proceed
+  //if the pin is correct display a welcome msg and display summary & movements & bal
+  if (currAcc?.pin === Number(inputLoginPin.value)) {
+    //Display welcome msg
+    labelWelcome.textContent = `Welcome back, ${currAcc.owner.split(' ')[0]}`; //only get the first name
+    //to change the opacity from 0 to visible value once user log in
+    containerApp.style.opacity = 100;
+
+    //clear the input fields
+    //assignmnt operator works form right to left hence
+    inputLoginUsername.value = inputLoginPin.value = '';
+
+    //change the focus of the pin input field
+    inputLoginPin.blur();
+
+    //display movements
+    displayMovements(currAcc.movements);
+
+    //display bal
+    showBalance(currAcc);
+
+    //display summary
+    calcDisplaySummary(currAcc);
+  } else {
+    alert('Invalid Username or pin');
+    //assignmnt operator works form right to left hence
+    inputLoginUsername.value = inputLoginPin.value = '';
+
+    //change the focus of the pin input field
+    inputLoginPin.blur();
+  }
+});
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
