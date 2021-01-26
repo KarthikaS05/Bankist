@@ -73,7 +73,7 @@ const displayMovements = movements => {
       i + 1
     } ${transcType}</div>
                    <div class="movements__date">3 days ago</div>
-                   <div class="movements__value">${mov}</div>
+                   <div class="movements__value">${mov} €</div>
                  </div>`;
 
     //add each movements row to movements div
@@ -105,6 +105,40 @@ const computeUserName = accs => {
 
 computeUserName(accounts); //side effect of for each - mutates the array
 console.log(accounts);
+
+/* ---------------------------- CALCULATE BALANCE &DISPLAY--------------------------- */
+
+const showBalance = acc => {
+  const moves = [...acc.movements];
+  const bal = moves.reduce((accu, mov) => accu + mov, 0); // 0 is initial value; accu = 0+mov -> returned
+  console.log(bal);
+  labelBalance.textContent = `${bal} €`;
+};
+
+showBalance(account1);
+
+/* ---------------------------- CALCULATE SUMMARY (in/out/interest) --------------------------- */
+//for chainging dont over use it ; avoid mutating array methods , for heavy arrays chaining slows down
+const calcDisplaySummary = movements => {
+  const incomes = movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes} €`;
+
+  const debit = movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(debit)} €`;
+
+  const interest = movements
+    .filter(mov => mov > 0)
+    .map(depo => (depo * 1.2) / 100)
+    .filter(int => int >= 1)
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest} €`;
+};
+
+calcDisplaySummary(account1.movements);
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
